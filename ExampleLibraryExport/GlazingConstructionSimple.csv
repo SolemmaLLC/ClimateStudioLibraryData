@@ -1,0 +1,6 @@
+Name,SHGF,UValue [W/m2-k],VisibleTransmittance,EmbodiedEnergy [MJ/m2],EmbodiedCarbon [kgCO2eq/m2],Cost [$/m2],Life [yr],Category,Comment,DataSource
+SinglePaneClr,0.905,5.894,0.913,8,0.5,436,30,Single,Standard clear,"EnergyPlus, RSMEANS, Citherlet et al"
+DoublePaneClr,0.764,2.72,0.812,20,2,481,30,Double,Standard clear,"EnergyPlus, RSMEANS, Citherlet et al"
+DoublePaneLoEe2,0.373,1.493,0.444,20,2,503,30,Double,Low emissivity coating on layer e2,"EnergyPlus, RSMEANS, Citherlet et al"
+DoublePaneLoEe3,0.649,1.507,0.769,20,2,503,30,Double,Low emissivity coating on layer e3,"EnergyPlus, RSMEANS, Citherlet et al"
+TriplePaneLoE,0.764,0.785,0.661,30,3,525,30,Triple,Low emissivity coating on layer e2 and e5,"EnergyPlus, RSMEANS, Citherlet et al"

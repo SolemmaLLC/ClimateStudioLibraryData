@@ -1,0 +1,12 @@
+Name,Loads,Conditioning,Ventilation,HotWater,Constructions
+Residential,Residential,Residential,ModerateAirTightness,Residential,UVal_0.2_Mass
+Kitchen,Kitchen,Kitchen,ModerateAirTightness,Kitchen,UVal_0.2_Mass
+Office,Office,Office,ModerateAirTightness,Office,UVal_0.2_Mass
+MeetingRoom,MeetingRoom,MeetingRoom,ModerateAirTightness,MeetingRoom,UVal_0.2_Mass
+HotelRoom,HotelRoom,HotelRoom,ModerateAirTightness,HotelRoom,UVal_0.2_Mass
+ClassRoom,ClassRoom,ClassRoom,ModerateAirTightness,ClassRoom,UVal_0.2_Mass
+Library,Library,Library,ModerateAirTightness,Library,UVal_0.2_Mass
+LectureHall,LectureHall,LectureHall,ModerateAirTightness,LectureHall,UVal_0.2_Mass
+SuperMarket,SuperMarket,SuperMarket,ModerateAirTightness,SuperMarket,UVal_0.2_Mass
+Shopping,Shopping,Shopping,ModerateAirTightness,Shopping,UVal_0.2_Mass
+ScienceLab,ScienceLab,ScienceLab,ModerateAirTightness,ScienceLab,UVal_0.2_Mass

@@ -1,0 +1,13 @@
+Name,WaterTemperatureInlet [C],WaterSupplyTemperature [C],WaterSchedule,FlowRatePerPerson [m3/h/P],Category,Comment,DataSource
+Off,10,60,AllOn,0,No Category,No comments,No data source
+Residential,10,60,AllOn,1.66666666666667,No Category,No comments,No data source
+Kitchen,10,60,AllOn,0.833333333333333,No Category,No comments,No data source
+Office,10,60,AllOn,0.416666666666667,No Category,No comments,No data source
+MeetingRoom,10,60,AllOn,0,No Category,No comments,No data source
+HotelRoom,10,60,AllOn,1.66666666666667,No Category,No comments,No data source
+ClassRoom,10,60,AllOn,0.0833333333333333,No Category,No comments,No data source
+Library,10,60,AllOn,0.0833333333333333,No Category,No comments,No data source
+LectureHall,10,60,AllOn,0.0833333333333333,No Category,No comments,No data source
+SuperMarket,10,60,AllOn,0.0833333333333333,No Category,No comments,No data source
+Shopping,10,60,AllOn,0.0833333333333333,No Category,No comments,No data source
+ScienceLab,10,60,AllOn,0.208333333333333,No Category,No comments,No data source

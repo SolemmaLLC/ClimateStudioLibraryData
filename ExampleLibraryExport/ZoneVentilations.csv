@@ -1,0 +1,5 @@
+Name,NatVentIsOn,SchedVentIsOn,InfiltrationIsOn,InfiltrationConstantCoefficient,InfiltrationTemperatureCoefficient,InfiltrationWindVelocityCoefficient,InfiltrationWindVelocitySquaredCoefficient,InfiltrationAch [ACH],ScheduledVentilationAch [ACH],ScheduledVentilationSchedule,NatVentSchedule,ScheduledVentilationSetPoint [C],BuoyancyDrivenIsOn,WindDrivenIsOn,NatVentSetPoint [C],NatVentMinOutAirTemp [C],NatVentMaxOutAirTemp [C],NatVentMaxRelHum [RH%],Category,Comment,DataSource
+Off,False,False,False,1,0,0,0,0.15,0.6,AllOn,AllOn,18,True,False,18,0,30,90,Infiltration,No comments,No data source
+PoorAirTightness,False,False,True,1,0,0,0,1.2,0.6,AllOn,AllOn,18,True,False,18,0,30,90,Infiltration,No comments,No data source
+ModerateAirTightness,False,False,True,1,0,0,0,0.5,0.6,AllOn,AllOn,18,True,False,18,0,30,90,Infiltration,No comments,No data source
+GoodAirTightness,False,False,True,1,0,0,0,0.15,0.6,AllOn,AllOn,18,True,False,18,0,30,90,Infiltration,No comments,No data source

@@ -1,0 +1,25 @@
+Type,EmbodiedEnergy,EmbodiedCarbon,Cost,Life,Name,Category,Comment,DataSource,LayerCount,Layers
+Facade,0,0,0,1,defaultConstruction,No Category,No comments,No data source,1,0.25,defaultMat
+Facade,0,0,0,1,120mmInsulation 200mmConcrete,Concrete,No comments,,2,0.12,0.2,XPS Board,General Concrete
+Facade,0,0,0,1,300mmInsulation 200mmConcrete,Concrete,No comments,,2,0.3,0.2,XPS Board,General Concrete
+InteriorFloor,0,0,0,1,200mmConcrete,Concrete,No comments,,1,0.2,General Concrete
+Partition,0,0,0,1,115mmSandLimeBrick,Concrete,No comments,,3,0.005,0.08,0.08,Plaster,Sand-Lime Brick,Plaster
+Partition,0,0,0,1,300mmConcrete 80mmInsulation 80mmScreed,Concrete,No comments,,3,0.3,0.115,0.005,General Concrete,XPS Board,Cement screed
+Facade,0,0,0,1,300mmInsulation 94mmSolidWood 24mmGypsum,Timber,No comments,dataholz.com,5,0.015,0.3,0.094,0.08,0.0245,Medium density fiberboard,Wood fiber insulating board,Cross Laminated Timber,Wood fiber insulating board,Gypsum Board
+Facade,0,0,0,1,120mmInsulation 78mmSolidWood 13mmGypsum,Timber,No comments,dataholz.com,4,0.004,0.12,0.078,0.013,Plaster,Mineral Wool,Cross Laminated Timber,Gypsum Board
+Facade,0,0,0,1,160mmInsulation 94mmSolidWood,Timber,No comments,dataholz.com,3,0.08,0.08,0.094,Mineral Wool,Mineral Wool,Cross Laminated Timber
+Partition,0,0,0,1,12mmGypsum 78mmSolidWood 12mmGypsum,Timber,No comments,dataholz.com,3,0.012,0.78,0.012,Gypsum Board,Cross Laminated Timber,Gypsum Board
+Partition,0,0,0,1,78mmSolidWood,Timber,No comments,dataholz.com,1,0.78,Cross Laminated Timber
+InteriorFloor,0,0,0,1,150mmScreedWithImpactSoundInsulation 140mmSolidWood,Timber,No comments,"dataholz.com, gdmnxn02-00",4,0.14,0.06,0.03,0.06,Cross Laminated Timber,Bonded chippings,Impact sound insulation,Cement screed
+Facade,0,0,0,1,Partition_Mass,Mass,No comments,,3,0.05,0.24,0.05,Plaster,Poroton T12,Plaster
+Facade,0,0,0,1,Partition_Light,Light,No comments,,1,0.04,Gypsum Board
+Facade,0,0,0,1,Slab_Mass,Mass,No comments,,1,0.2,General Concrete
+Facade,0,0,0,1,Slab_Light,Light,No comments,,1,0.2,Cross Laminated Timber
+Facade,0,0,0,1,UVal_0.1_Mass,Mass,No comments,,2,0.4,0.2,Mineral Wool,General Concrete
+Facade,0,0,0,1,UVal_0.1_Light,Light,No comments,,2,0.4,0.02,Mineral Wool,Gypsum Board
+Facade,0,0,0,1,UVal_0.2_Mass,Mass,No comments,,2,0.194,0.2,Mineral Wool,General Concrete
+Facade,0,0,0,1,UVal_0.2_Light,Light,No comments,,2,0.195,0.02,Mineral Wool,Gypsum Board
+Facade,0,0,0,1,UVal_0.3_Mass,Mass,No comments,,2,0.1255,0.2,Mineral Wool,General Concrete
+Facade,0,0,0,1,UVal_0.3_Light,Light,No comments,,2,0.127,0.02,Mineral Wool,Gypsum Board
+Facade,0,0,0,1,UVal_0.4_Mass,Mass,No comments,,2,0.915,0.2,Mineral Wool,General Concrete
+Facade,0,0,0,1,UVal_0.4_Light,Light,No comments,,2,0.929,0.02,Mineral Wool,Gypsum Board

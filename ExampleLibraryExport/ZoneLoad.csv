@@ -1,0 +1,13 @@
+Name,PeopleDensity [p/m2],MetabolicRate [met],AirspeedSchedule [m/s],EquipmentPowerDensity [W/m2],LightingPowerDensity [W/m2],IlluminanceTarget [lux],OccupancySchedule,EquipmentAvailibilitySchedule,LightsAvailibilitySchedule,DimmingType,PeopleIsOn,EquipmentIsOn,LightsIsOn,Category,Comment,DataSource
+Off,0,1.2,AirSpeed 0,0,0,0,AllOn,AllOn,AllOn,Off,False,False,False,Default,No comments,Default
+Residential,0.025,1.2,AirSpeed 0,2,9.5,200,occResidential,equipResidential,lightsResidential,Off,True,True,True,Residential,No comments,SIA Merkblatt 2024
+Kitchen,0.2,1.2,AirSpeed 0,40,17,500,occKitchen,equipKitchen,lightsKitchen,Off,True,True,True,Residential,No comments,SIA Merkblatt 2024
+Office,0.0714285714285714,1.2,AirSpeed 0,7,16,500,occOffice,equipOffice,lightsOffice,Continuous,True,True,True,Office,No comments,SIA Merkblatt 2024
+MeetingRoom,0.333333333333333,1.2,AirSpeed 0,2,16,500,occMeetingRoom,equipMeetingRoom,lightsMeetingRoom,Continuous,True,True,True,Office,No comments,SIA Merkblatt 2024
+HotelRoom,0.1,1.2,AirSpeed 0,2,3,50,occHotelRoom,equipHotelRoom,lightsHotelRoom,Off,True,True,True,Residential,No comments,SIA Merkblatt 2024
+ClassRoom,0.333333333333333,1.2,AirSpeed 0,4,14,500,occClassRoom,equipClassRoom,lightsClassRoom,Continuous,True,True,True,Residential,No comments,SIA Merkblatt 2024
+Library,0.2,1.2,AirSpeed 0,2,7,200,occLibrary,equipLibrary,lightsLibrary,Off,True,True,True,Education,No comments,SIA Merkblatt 2024
+LectureHall,0.5,1.2,AirSpeed 0,4,12.5,500,occLectureHall,equipLectureHall,lightsLectureHall,Off,True,True,True,Education,No comments,SIA Merkblatt 2024
+SuperMarket,0.333333333333333,1.2,AirSpeed 0,5,27.5,300,occSuperMarket,equipSuperMarket,lightsSuperMarket,Off,True,True,True,Commercial,No comments,SIA Merkblatt 2024
+Shopping,0.2,1.2,AirSpeed 0,2,33.5,300,occShopping,equipShopping,lightsShopping,Off,True,True,True,Commercial,No comments,SIA Merkblatt 2024
+ScienceLab,0.2,1.2,AirSpeed 0,20,16,500,occOffice,equipOffice,lightsOffice,Off,True,True,True,Education,No comments,SIA Merkblatt 2024

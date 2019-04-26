@@ -1,0 +1,50 @@
+Type,Name,Category,Comment,DataSource,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
+AnyNumber,AirSpeed 0,AirSpeed,No comments,DefaultLibrary,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+AnyNumber,AirSpeed 0.1,AirSpeed,No comments,DefaultLibrary,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1
+AnyNumber,AirSpeed 0.2,AirSpeed,No comments,DefaultLibrary,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2
+Fraction,AllOn,Availability,No comments,DefaultLibrary,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+Fraction,AllOff,Availability,No comments,DefaultLibrary,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Temperature,S21 B18 8to18,Control,No comments,DefaultLibrary,18,18,18,18,18,18,18,21,21,21,21,21,21,21,21,21,21,21,18,18,18,18,18,18
+Temperature,S25 B30 8to18,Control,No comments,DefaultLibrary,30,30,30,30,30,30,30,25,25,25,25,25,25,25,25,25,25,25,30,30,30,30,30,30
+Fraction,occResidential,Occupancy,No comments,SIA Merkblatt 2024,1,1,1,1,1,1,0.8,0.6,0.4,0.4,0.4,0.6,0.8,0.6,0.4,0.4,0.6,0.8,0.8,0.8,0.8,1,1,1
+Fraction,equipResidential,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.5,1,0.5,0.5,0.5,1,1,0.5,0.5,0.5,1,1,1,1,0.5,0.5,0.5,0.1
+Fraction,lightsResidential,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0
+Fraction,occKitchen,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0.4,0.8,0.4,0,0,0.4,0.8,0.4,0,0,0.4,1,0.6,0.4,0,0,0,0
+Fraction,equipKitchen,Equipment,No comments,SIA Merkblatt 2024,0.2,0.2,0.2,0.2,0.2,0.2,0.4,0.8,0.4,0.2,0.2,0.4,1,0.4,0.2,0.2,0.4,1,0.4,0.2,0.2,0.2,0.2,0.2
+Fraction,lightsKitchen,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,1,0,0,0,0
+Fraction,occHotelRoom,Occupancy,No comments,SIA Merkblatt 2024,1,1,1,1,1,1,0.8,0.4,0,0,0,0,0,0,0,0,0,0,0,0,0.4,0.6,0.8,1
+Fraction,equipHotelRoom,Equipment,No comments,SIA Merkblatt 2024,1,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.6,0.8,1
+Fraction,lightsHotelRoom,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,1,0.8,0.4,0,0,0,0,0,0,0,0,0,0,0,0,0.4,0.6,0.8,1
+Fraction,occOffice,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0,0.2,0.4,0.6,0.8,0.8,0.4,0.6,0.8,0.8,0.4,0.2,0,0,0,0,0,0
+Fraction,occOfficeWeekEnd,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Fraction,equipOffice,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.2,0.4,0.6,0.8,0.8,0.4,0.6,0.8,0.8,0.4,0.2,0.1,0.1,0.1,0.1,0.1,0.1
+Fraction,equipOfficeWeekEnd,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1
+Fraction,lightsOffice,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0
+Fraction,lightsOfficeWeekEnd,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Fraction,occMeetingRoom,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0,0,0,0.6,1,0.4,0,0,0.6,1,0.4,0,0,0,0,0,0,0
+Fraction,occMeetingRoomWeekEnd,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Fraction,equipMeetingRoom,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.2,0.4,0.6,0.8,0.8,0.4,0.6,0.8,0.8,0.4,0.2,0.1,0.1,0.1,0.1,0.1,0.1
+Fraction,equipMeetingRoomWeekEnd,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1
+Fraction,lightsMeetingRoom,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,0,0,0,1,1,1,0,0,1,1,1,0,0,0,0,0,0,0
+Fraction,lightsMeetingRoomWeekEnd,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Fraction,occClassRoom,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0,0.2,0.4,0.8,0.8,0.4,0.2,0.4,0.8,0.8,0.2,0,0,0,0,0,0,0
+Fraction,occClassRoomWeekEnd,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Fraction,equipClassRoom,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.2,0.4,0.8,0.8,0.4,0.2,0.4,0.8,0.8,0.2,0.1,0.1,0.1,0.1,0.1,0.1,0.1
+Fraction,equipClassRoomWeekEnd,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1
+Fraction,lightsClassRoom,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0
+Fraction,lightsClassRoomWeekEnd,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Fraction,occLibrary,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0,0.2,0.6,1,1,0.2,0.2,1,1,0.6,0.2,0,0,0,0,0,0,0
+Fraction,equipLibrary,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.2,0.6,1,1,0.2,0.2,1,1,0.6,0.4,0.1,0.1,0.1,0.1,0.1,0.1,0.1
+Fraction,lightsLibrary,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0
+Fraction,occLectureHall,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0,0.2,0.6,1,1,0.2,0.2,1,1,0.6,0.2,0,0,0,0,0,0,0
+Fraction,occLectureHallWeekEnd,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Fraction,equipLectureHall,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.2,0.6,1,1,0.2,0.2,1,1,0.6,0.4,0.1,0.1,0.1,0.1,0.1,0.1,0.1
+Fraction,equipLectureHallWeekEnd,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1
+Fraction,lightsLectureHall,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0
+Fraction,lightsLectureHallWeekEnd,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Fraction,occSuperMarket,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0,0.2,0.4,0.4,0.4,0.6,0.6,0.6,0.4,0.4,0.6,0.8,0.6,0,0,0,0,0
+Fraction,equipSuperMarket,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.1,1,1,1,1,1,1,1,1,1,1,1,1,0.1,0.1,0.1,0.1,0.1
+Fraction,lightsSuperMarket,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0
+Fraction,occShopping,Occupancy,No comments,SIA Merkblatt 2024,0,0,0,0,0,0,0,0.2,0.4,0.4,0.4,0.6,0.6,0.6,0.4,0.4,0.6,0.8,0.6,0,0,0,0,0
+Fraction,equipShopping,Equipment,No comments,SIA Merkblatt 2024,0.1,0.1,0.1,0.1,0.1,0.1,0.1,1,1,1,1,1,1,1,1,1,1,1,1,0.1,0.1,0.1,0.1,0.1
+Fraction,lightsShopping,Lights,No comments,based on SIA Merkblatt 2024 Occ Schedule,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0

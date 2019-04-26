@@ -1,0 +1,4 @@
+SHGF,UValue,TVis,EmbodiedEnergy,EmbodiedCarbon,Cost,Life,Name,Category,Comment,DataSource,LayerCount,Layers
+0.905,5.894,0.913,0,0,0,1,defaultGlazing,No Category,No comments,No data source,1,0.006,defaultGlazingMat
+0.99,NA,0.99,0,0,0,1,Airwall,No Category,No comments,No data source,1,0.003,100TRANS
+0.703,2.67,0.781,0,0,0,1,DblClear Air 6_6_6,No Category,No comments,No data source,3,0.006,0.006,0.006,Generic Clear Glass 6mm,AIR,Generic Clear Glass 6mm
