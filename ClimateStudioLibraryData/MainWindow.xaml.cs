@@ -24,42 +24,43 @@ namespace ClimateStudioLibraryData
     /// </summary>
     public partial class MainWindow : Window
     {
+        Library Library;
         
         public MainWindow()
         {
             InitializeComponent();
 
-            var lib = LibraryDefaults.getHardCodedDefaultLib();
+            Library = LibraryDefaults.getHardCodedDefaultLib();
 
+            ErrorTextBox.Text = "Default Library generated" +Library.TimeStamp;
 
-            string folderPath = @"C:\DIVA\Temp";
-
-            folderPath += @"\ArchsimLibrary-" + lib.TimeStamp.Year + "-" + lib.TimeStamp.Month + "-" + lib.TimeStamp.Day + "-" + lib.TimeStamp.Hour + "-" + lib.TimeStamp.Minute;
-
-            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-
-
-            
 
 
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void ExportButton_Click(object sender, RoutedEventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            System.Windows.Forms.FolderBrowserDialog openFileDia = new System.Windows.Forms.FolderBrowserDialog();
+            DialogResult result = openFileDia.ShowDialog();
+            if (result == System.Windows.Forms.DialogResult.OK) // Test result.
             {
-                System.Windows.Forms.DialogResult result = fbd.ShowDialog();
+                //Rhino.RhinoApp.WriteLine(openFileDia.FileName);
+                ErrorTextBox.Text = ErrorTextBox.Text +"\n"+ ("Library exported to " + openFileDia.SelectedPath);
+                CSVImportExport.ExportLibrary(Library, openFileDia.SelectedPath);
 
-                if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
-                {
+            }
 
-                    TextBX.Text = fbd.SelectedPath;
+        }
 
-                    string[] files = Directory.GetFiles(fbd.SelectedPath);
-
-                    System.Windows.Forms.MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
-
-                }
+        private void ImportButton_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Forms.FolderBrowserDialog openFileDia = new System.Windows.Forms.FolderBrowserDialog();
+            DialogResult result = openFileDia.ShowDialog();
+            if (result == System.Windows.Forms.DialogResult.OK) // Test result.
+            {
+                //Rhino.RhinoApp.WriteLine(openFileDia.FileName);
+                ErrorTextBox.Text = ErrorTextBox.Text + "\n" + ("Library imported from " + openFileDia.SelectedPath);
+                Library.Import(CSVImportExport.ImportLibrary(openFileDia.SelectedPath));
             }
         }
 

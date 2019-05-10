@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClimateStudioLibraryData"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="416" Width="600">
     <Grid>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="10,249,0,0" VerticalAlignment="Top" Width="223" Click="Button_Click" Height="60"/>
-        <TextBox Name="TextBX" HorizontalAlignment="Left" Height="234" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="517"/>
+        <TextBox Name="ErrorTextBox" HorizontalAlignment="Stretch" TextWrapping="Wrap" Text="no errors..." VerticalAlignment="Stretch" Margin="10,10,10,85" />
+        <Button Content="Export" HorizontalAlignment="Stretch"  VerticalAlignment="Bottom"  Click="ExportButton_Click" Height="30" Margin="10,10,10,45"/>
+        <Button Content="Import" HorizontalAlignment="Stretch"  VerticalAlignment="Bottom"  Click="ImportButton_Click" Height="30" Margin="10,10,10,10"/>
     </Grid>
 </Window>
