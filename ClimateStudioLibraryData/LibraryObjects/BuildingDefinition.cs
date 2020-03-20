@@ -1,69 +1,99 @@
-﻿using System.Collections.Generic;
+﻿using ProtoBuf;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace ArchsimLib.LibraryObjects
+namespace CSEnergyLib.LibraryObjects
 {
+
+    [ProtoContract]
     [DataContract(IsReference = true)]
     public class FloorDefinition : LibraryComponent
     {
-        [DataMember]
-        public string Type = "INT";
-        [DataMember]
-        public string BuildingID = "Default";
-        [DataMember]
-        public double NorthWWR = 0.5;
-        [DataMember]
-        public double EastWWR = 0.5;
-        [DataMember]
-        public double SouthWWR = 0.5;
-        [DataMember]
-        public double WestWWR = 0.5;
-        [DataMember]
-        public double RoofWWR = 0.5;
+
+        public  FloorDefinition() {  }
 
 
         [DataMember]
-        public double NorthOverhang = 0;
+        [ProtoMember(1)]
+        public string Type { get; set; } = "INT";
         [DataMember]
-        public double EastOverhang = 0;
+        [ProtoMember(2)]
+        public string BuildingID { get; set; } = "Default";
         [DataMember]
-        public double SouthOverhang = 0;
+        [ProtoMember(3)]
+        public double NorthWWR { get; set; } = 0.5;
         [DataMember]
-        public double WestOverhang = 0;
+        [ProtoMember(4)]
+        public double EastWWR { get; set; } = 0.5;
         [DataMember]
-        public double NorthWingwall = 0;
+        [ProtoMember(5)]
+        public double SouthWWR { get; set; } = 0.5;
         [DataMember]
-        public double EastWingwall = 0;
+        [ProtoMember(6)]
+        public double WestWWR { get; set; } = 0.5;
         [DataMember]
-        public double SouthWingwall = 0;
+        [ProtoMember(7)]
+        public double RoofWWR { get; set; } = 0.5;
+
+
         [DataMember]
-        public double WestWingwall = 0;
+        [ProtoMember(10)]
+        public double NorthOverhang { get; set; } = 0;
+        [DataMember]
+        [ProtoMember(11)]
+        public double EastOverhang { get; set; } = 0;
+        [DataMember]
+        [ProtoMember(12)]
+        public double SouthOverhang { get; set; } = 0;
+        [DataMember]
+        [ProtoMember(13)]
+        public double WestOverhang { get; set; } = 0;
+        [DataMember]
+        [ProtoMember(14)]
+        public double NorthWingwall { get; set; } = 0;
+        [DataMember]
+        [ProtoMember(15)]
+        public double EastWingwall { get; set; } = 0;
+        [DataMember]
+        [ProtoMember(16)]
+        public double SouthWingwall { get; set; } = 0;
+        [DataMember]
+        [ProtoMember(17)]
+        public double WestWingwall { get; set; } = 0;
 
 
 
 
 
         [DataMember]
-        public string NorthWindowDefinition = "";
+        [ProtoMember(19)]
+        public string NorthWindowDefinition { get; set; } = "";
         [DataMember]
-        public string EastWindowDefinition = "";
+        [ProtoMember(20)]
+        public string EastWindowDefinition { get; set; } = "";
         [DataMember]
-        public string SouthWindowDefinition = "";
+        [ProtoMember(21)]
+        public string SouthWindowDefinition { get; set; } = "";
         [DataMember]
-        public string WestWindowDefinition = "";
+        [ProtoMember(22)]
+        public string WestWindowDefinition { get; set; } = "";
         [DataMember]
-        public string RoofWindowDefinition = "";
+        [ProtoMember(23)]
+        public string RoofWindowDefinition { get; set; } = "";
 
         [DataMember]
-        public bool isBasement = false;
+        [ProtoMember(24)]
+        public bool isBasement { get; set; } = false;
 
         [DataMember]
+        [ProtoMember(25)]
         public string ZoneDefinition { get; set; } = "";
 
 
         // this can be used to override the zone construction
         // TODO: reorganize data so that there is no more need to override
         [DataMember]
+        [ProtoMember(26)]
         public string ZoneConstruction { get; set; } = "";
 
 
@@ -71,14 +101,17 @@ namespace ArchsimLib.LibraryObjects
     }
 
 
-
+    [ProtoContract]
     [DataContract(IsReference = true)]
-    public class BuildingDefinition //: LibraryComponent
+    public class BuildingDefinition : LibraryComponent
     {
+
+        public BuildingDefinition() { }
+
         [DataMember]
-        public string Name = "Default";
-        [DataMember]
-        public List<FloorDefinition> Floors = new List<FloorDefinition>();
+        [ProtoMember(1,AsReference =true, OverwriteList =true)]
+
+        public List<FloorDefinition> Floors { get; set; } = new List<FloorDefinition>();
 
     }
 }

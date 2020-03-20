@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ArchsimLib.Utilities
+namespace CSEnergyLib.Utilities
 {
 
     public static class TimeHelpers

@@ -1,5 +1,6 @@
-﻿using ArchsimLib;
-using ArchsimLib.LibraryObjects;
+﻿using CSEnergyLib;
+using CSEnergyLib.LibraryObjects;
+using CSEnergyLib.Utilities;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
@@ -8,25 +9,25 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Windows;
+using System.Windows.Forms;
 
-
-namespace ArchsimLib.CSV
+namespace CSEnergyLib.CSV
 {
-   public static class CSVImportExport
+   public class CSVImportExport
     {
 
-        //Generic conversion
+        //Special Type Converters
         public class MyDoubleListConverter : ITypeConverter
         {
             public string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
             {
-
                 return JsonConvert.SerializeObject(value);
-
             }
 
             public object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
@@ -34,19 +35,143 @@ namespace ArchsimLib.CSV
                 return JsonConvert.DeserializeObject<List<double>>(text);
             }
         }
+
+        public class MyGlazingLayerConverter : ITypeConverter
+        {
+            public string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
+            {
+                string s = "[";
+                var layers = value as List<CSWindowMaterialBase>;
+                foreach (var l in layers) {
+                    s += l.Name + ", ";
+                }
+                s = s.Trim();
+                s = s.Remove(s.Length - 1, 1);
+                s += "]";
+                return s;
+            }
+
+            public object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
+            {
+                if (String.IsNullOrWhiteSpace(text)) return null;
+
+                text = text.Trim();
+                text = text.Remove(0,1);
+                text = text.Remove(text.Length - 1, 1);
+
+                string[] nameArr = text.Split(',');
+                 List<CSWindowMaterialBase> layers = new List<CSWindowMaterialBase>();
+
+                for (int i = 0; i < nameArr.Length; i++)
+                {
+                    //var thick = csv.GetField<double>(i);
+                    var name = nameArr[i].Trim();  
+
+                    if (newLib.GlazingMaterials.Any(x => x.Name == name))
+                    {
+                        var m = newLib.GlazingMaterials.First(x => x.Name == name);
+                        layers.Add(m);
+                    }
+                    else if (newLib.GasMaterials.Any(x => x.Name == name))
+                    {
+                        var thegas = newLib.GasMaterials.First(x => x.Name == name);
+                        layers.Add(thegas);
+                    }
+                    else {
+                        System.Windows.MessageBox.Show("Referenced object " + nameArr[i] + " not found in library");
+                     }
+
+                }
+  
+
+
+
+                return layers;
+            }
+        }
+
+        public class MyOpaqueLayerConverter : ITypeConverter
+        {
+            public string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
+            {
+                string s = "[";
+                var layers = value as List<Layer<CSOpaqueMaterial>>;
+                foreach (var l in layers)
+                {
+                    s += l.Material.Name + ", " + l.Thickness +", ";
+                }
+                s = s.Trim();
+                s = s.Remove(s.Length - 1, 1);
+                s += "]";
+                return s;
+            }
+
+            public object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
+            {
+                if (String.IsNullOrWhiteSpace(text)) return null;
+
+                text = text.Trim();
+                text = text.Remove(0, 1);
+                text = text.Remove(text.Length - 1, 1);
+
+                string[] nameArr = text.Split(',');
+                List<Layer<CSOpaqueMaterial>> layers = new List<Layer<CSOpaqueMaterial>>();
+
+                for (int i = 0; i < nameArr.Length; i+=2)
+                {
+                    //var thick = csv.GetField<double>(i);
+                    var name = nameArr[i].Trim(); 
+                    var thick = double.Parse(nameArr[i+1]);
+
+                    if (newLib.OpaqueMaterials.Any(x => x.Name.ToUpper() == name.ToUpper()))
+                    {
+                        var m = newLib.OpaqueMaterials.First(x => x.Name == name);
+                        layers.Add(new Layer<CSOpaqueMaterial>(thick, m));
+                    }
+                  
+                    else
+                    {
+                        System.Windows.MessageBox.Show("Referenced object " + nameArr[i] + " not found in library");
+                    }
+
+                }
+
+
+
+
+                return layers;
+            }
+        }
+
+
+        //Custom Mapper
+
         public class AutoMap<T> : ClassMap<T>
         {
             public AutoMap()
             {
                 var properties = typeof(T).GetProperties();
-
+                
                 // map the name property first
-                var nameProperty = properties.FirstOrDefault(p => p.Name == "Name");
-                if (nameProperty != null)
-                    MapProperty(nameProperty).Index(0);
+                var nameProperty = properties.FirstOrDefault(p => p.Name == "Name"); 
+                if (nameProperty != null) MapProperty(nameProperty).Index(0);
 
-                foreach (var prop in properties.Where(p => p != nameProperty))
+                var isLockedProperty = properties.FirstOrDefault(p => p.Name == "IsLocked");
+                var libNameProperty = properties.FirstOrDefault(p => p.Name == "LibraryName");
+                var defaultProperty = properties.FirstOrDefault(p => p.Name == "IsDefault");
+
+
+                if (isLockedProperty != null) MapProperty(isLockedProperty).Ignore();
+                if (libNameProperty != null) MapProperty(libNameProperty).Ignore();
+                if (defaultProperty != null) MapProperty(defaultProperty).Ignore();
+
+                foreach (var prop in properties.Where(p => p != nameProperty && p != isLockedProperty && p != libNameProperty && p != defaultProperty ))
+                {
                     MapProperty(prop);
+                }
+
+               
+
             }
 
             private MemberMap MapProperty(PropertyInfo pi)
@@ -57,12 +182,23 @@ namespace ArchsimLib.CSV
                 {
                     map.TypeConverter<MyDoubleListConverter>();
                 }
+                else if (typeof(List<CSWindowMaterialBase>) == pi.PropertyType)
+                {
+                    map.TypeConverter<MyGlazingLayerConverter>();
+                }
+                else if (typeof(List<Layer<CSOpaqueMaterial>>) == pi.PropertyType)
+                {
+                    map.TypeConverter<MyOpaqueLayerConverter>();
+                }
+
 
                 // set name
                 string name = pi.Name;
                 var unitsAttribute = pi.GetCustomAttribute<Units>();
                 if (unitsAttribute != null)
+                {
                     name = $"{name} {"[" + unitsAttribute.Unit + "]"}";
+                }
                 map.Name(new string[] { name, pi.Name });
 
                 // set default
@@ -73,72 +209,109 @@ namespace ArchsimLib.CSV
                 return map;
             }
         }
+
+    
+
         public static void writeLibCSV<T>(string fp, List<T> records)
         {
-            using (var sw = new StreamWriter(fp))
+            if (records.Count == 0) return;
+            using (var writer = new StreamWriter(fp))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                var csv = new CsvWriter(sw);
                 csv.Configuration.RegisterClassMap<AutoMap<T>>();
+
                 csv.WriteRecords(records);
             }
+
         }
         public static List<T> readLibCSV<T>(string fp)
         {
-            var records = new List<T>();
-            using (var sr = new StreamReader(fp))
+            try
             {
-                var csv = new CsvReader(sr);
-                csv.Configuration.RegisterClassMap<AutoMap<T>>();
-                records = csv.GetRecords<T>().ToList();
+                var records = new List<T>();
+
+                if (!File.Exists(fp))
+                {
+                    //Eto.Forms.MessageBox.Show(fp + " is missing!");
+                    return records;
+                }
+
+                using (var reader = new StreamReader(fp))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                {
+                    csv.Configuration.HasHeaderRecord = true;
+                    csv.Configuration.HeaderValidated = null;
+                    csv.Configuration.MissingFieldFound = null;
+                    csv.Configuration.IgnoreBlankLines = true;
+
+
+                    csv.Configuration.RegisterClassMap<AutoMap<T>>();
+                    records = csv.GetRecords<T>().ToList();
+                }
+                return records;
             }
-            return records;
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show(e.Message);
+                return new List<T>();
+            }
         }
 
         //Special cases
-        private static void writeArrayScheduleCSV(string fp, List<ScheduleArray> schedules)
+        private static void writeArrayScheduleCSV(string fp, List<CSArraySchedule> records)
         {
+            if (records.Count == 0) return ;
+
+
             StringBuilder sb = new StringBuilder();
 
-            for (int i = 0; i < schedules.Count; i++)
+            for (int i = 0; i < records.Count; i++)
             {
-                sb.Append(schedules[i].Name + ((schedules.Count - 1 == i) ? "" : ","));
+                sb.Append(records[i].Name + ((records.Count - 1 == i) ? "" : ","));
             }
             sb.Append(System.Environment.NewLine);
-            for (int i = 0; i < schedules.Count; i++)
+            for (int i = 0; i < records.Count; i++)
             {
-                sb.Append(Enum.GetName(typeof(ScheduleType), schedules[i].Type) + ((schedules.Count - 1 == i) ? "" : ","));
+                sb.Append(Enum.GetName(typeof(ScheduleType), records[i].Type) + ((records.Count - 1 == i) ? "" : ","));
             }
             sb.Append(System.Environment.NewLine);
-            for (int i = 0; i < schedules.Count; i++)
+            for (int i = 0; i < records.Count; i++)
             {
-                sb.Append(schedules[i].Category + ((schedules.Count - 1 == i) ? "" : ","));
+                sb.Append(records[i].Category + ((records.Count - 1 == i) ? "" : ","));
             }
             sb.Append(System.Environment.NewLine);
 
 
-            for (int j = 0; j < schedules[0].Values.Length; j++)
+            for (int j = 0; j < records[0].Values.Length; j++)
             {
-                for (int i = 0; i < schedules.Count; i++)
+                for (int i = 0; i < records.Count; i++)
                 {
-                    sb.Append(schedules[i].Values[j] + ((schedules.Count - 1 == i) ? "" : ","));
+                    sb.Append(records[i].Values[j] + ((records.Count - 1 == i) ? "" : ","));
                 }
                 sb.Append(System.Environment.NewLine);
             }
             System.IO.File.WriteAllText(fp, sb.ToString());
         }
-        private static List<ScheduleArray> readArrayScheduleCSV(string fp)
+        private static List<CSArraySchedule> readArrayScheduleCSV(string fp)
         {
-            var schedules = new List<ScheduleArray>();
+            var schedules = new List<CSArraySchedule>();
+
+            if (!File.Exists(fp))
+            {
+                //Eto.Forms.MessageBox.Show(fp + " is missing!");
+                return schedules;
+            }
 
             string[] lines = File.ReadAllLines(fp);
 
             var header = lines[0].Split(',');
             var types = lines[1].Split(',');
             var cats = lines[2].Split(',');
-
+            
             for (int i = 0; i < header.Length; i++)
             {
-                schedules.Add(new ScheduleArray() { Values = new double[8760], Name = header[i], Category = cats[i], Type = (ScheduleType)Enum.Parse(typeof(ScheduleType), types[i]) });
+                var type = (ScheduleType)Enum.Parse(typeof(ScheduleType), types[i]);
+                schedules.Add(new CSArraySchedule(new double[8760], type) {    Name = header[i], Category = cats[i]  });
             }
 
             for (int i = 3; i < lines.Length; i++)
@@ -149,14 +322,17 @@ namespace ArchsimLib.CSV
                     schedules[j].Values[i - 3] = double.Parse(lin[j]);
                 }
             }
-            return schedules;
+             return schedules;
         }
-        private static void writeYearCSV(string fp, List<YearSchedule> records)
+        private static void writeYearCSV(string fp, List<CSYearSchedule> records)
         {
-            using (var sw = new StreamWriter(fp))
+            if (records.Count == 0) return;
+
+
+            using (var writer = new StreamWriter(fp))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                var csv = new CsvWriter(sw);
-                csv.WriteHeader(typeof(YearSchedule));
+                csv.WriteHeader(typeof(CSYearSchedule));
                 csv.WriteField("Week Schedules Count");
                 csv.WriteField("Week Schedules");
 
@@ -181,18 +357,32 @@ namespace ArchsimLib.CSV
                 }
             }
         }
-        private static List<YearSchedule> readYearCSV(string fp, List<DaySchedule> days)
+        private static List<CSYearSchedule> readYearCSV(string fp, List<CSDaySchedule> days)
         {
-            var records = new List<YearSchedule>();
-            using (var sr = new StreamReader(fp))
+            var records = new List<CSYearSchedule>();
+
+            if (!File.Exists(fp))
             {
-                var csv = new CsvReader(sr);
+                //Eto.Forms.MessageBox.Show(fp + " is missing!");
+                return records;
+            }
+
+
+            using (var reader = new StreamReader(fp))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                csv.Configuration.HasHeaderRecord = true;
+                csv.Configuration.HeaderValidated = null;
+                csv.Configuration.MissingFieldFound = null;
+                csv.Configuration.IgnoreBlankLines = true;
+
                 while (csv.Read())
                 {
                     try
                     {
                         bool foundAllSchedules = true;
-                        YearSchedule record = csv.GetRecord<YearSchedule>();
+                        CSYearSchedule record = csv.GetRecord<CSYearSchedule>();
+                        if (record == null) continue;
                         int weekCnt = csv.GetField<int>("Week Schedules Count");
                         int weeksStartAt = csv.GetFieldIndex("Week Schedules Count") + 1;
 
@@ -202,7 +392,7 @@ namespace ArchsimLib.CSV
 
                             weekSched.From = csv.GetField<DateTime>(i);
                             weekSched.To = csv.GetField<DateTime>(i + 1);
-                            weekSched.Days = new DaySchedule[7];
+                            weekSched.Days = new CSDaySchedule[7];
 
 
                             for (int j = 0; j < 7; j++)
@@ -222,22 +412,26 @@ namespace ArchsimLib.CSV
                             record.WeekSchedules.Add(weekSched);
                         }
 
+                        record.Total = record.LoadHours();
+
                         if (foundAllSchedules) records.Add(record);
-                        else { System.Windows.MessageBox.Show(record.Name + " contains day schedules that are not found in library"); }
+                        //else { Eto.Forms.MessageBox.Show(record.Name + " contains day schedules that are not found in library"); }
                     }
                     catch (Exception ex) { Debug.WriteLine(ex.Message); }
                 }
             }
             return records;
         }
-        private static void writeDayCSV(string fp, List<DaySchedule> records)
+        [Obsolete]
+        private static void writeDayCSV(string fp, List<CSDaySchedule> records)
         {
-            using (var sw = new StreamWriter(fp))
+            if (records.Count == 0) return;
+
+            using (var writer = new StreamWriter(fp))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                // var records = lib.OpaqueMaterials;
-                var csv = new CsvWriter(sw);
-                //csv.WriteRecords(records);
-                csv.WriteHeader(typeof(DaySchedule));
+ 
+                csv.WriteHeader(typeof(CSDaySchedule));
                 csv.WriteField("1");
                 csv.WriteField("2");
                 csv.WriteField("3");
@@ -279,41 +473,64 @@ namespace ArchsimLib.CSV
                     csv.NextRecord();
                 }
             }
+
         }
-        private static List<DaySchedule> readDayCSV(string fp)
+        [Obsolete]
+        private static List<CSDaySchedule> readDayCSV(string fp)
         {
-            var records = new List<DaySchedule>();
-            using (var sr = new StreamReader(fp))
+            var records = new List<CSDaySchedule>();
+
+            if (!File.Exists(fp))
             {
-                var csv = new CsvReader(sr);
-                while (csv.Read())
-                {
-                    try
-                    {
-                        DaySchedule record = csv.GetRecord<DaySchedule>();
-
-                        int layerStartAt = 5;
-                        for (int i = layerStartAt; i < layerStartAt + 24; i++)
-                        {
-                            var h = csv.GetField<double>(i);
-                            record.Values.Add(h);
-                        }
-
-                        records.Add(record);
-                    }
-                    catch (Exception ex) { Debug.WriteLine(ex.Message); }
-                }
+                //Eto.Forms.MessageBox.Show(fp + " is missing!");
+                return records;
             }
-            return records;
-        }
-        private static void writeOpaqueConstructionsCSV(string fp, List<OpaqueConstruction> records)
-        {
-            using (var sw = new StreamWriter(fp))
+
+
+            using (var reader = new StreamReader(fp))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
-                // var records = lib.OpaqueMaterials;
-                var csv = new CsvWriter(sw);
-                //csv.WriteRecords(records);
-                csv.WriteHeader(typeof(OpaqueConstruction));
+                csv.Configuration.HasHeaderRecord = true;
+                csv.Configuration.HeaderValidated = null;
+                csv.Configuration.MissingFieldFound = null;
+                csv.Configuration.IgnoreBlankLines = true;
+
+                while (csv.Read())
+                    {
+                        try
+                        {
+                            CSDaySchedule record = csv.GetRecord<CSDaySchedule>();
+                            if (record == null) continue;
+                            int layerStartAt = 5;
+                            for (int i = layerStartAt; i < layerStartAt + 24; i++)
+                            {
+                                var h = csv.GetField<double>(i);
+                                record.Values.Add(h);
+                            }
+                            record.Total = record.Values.Sum();
+                            records.Add(record);
+                        }
+                        catch (Exception ex) { Debug.WriteLine(ex.Message); }
+                    }
+                }
+                return records;
+
+            }
+
+
+
+
+        [Obsolete]
+        private static void writeOpaqueConstructionsCSV(string fp, List<CSOpaqueConstruction> records)
+        {
+            if (records.Count == 0) return;
+
+            using (var writer = new StreamWriter(fp))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.Configuration.RegisterClassMap<AutoMap<CSOpaqueConstruction>>();
+
+                csv.WriteHeader(typeof(CSOpaqueConstruction));
                 csv.WriteField("LayerCount");
                 csv.WriteField("Layers");
 
@@ -341,18 +558,34 @@ namespace ArchsimLib.CSV
                 }
             }
         }
-        private static List<OpaqueConstruction> readOpaqueConstructionsCSV(string fp, List<OpaqueMaterial> mat)
+        [Obsolete]
+        private static List<CSOpaqueConstruction> readOpaqueConstructionsCSV(string fp, List<CSOpaqueMaterial> mat)
         {
-            var records = new List<OpaqueConstruction>();
-            using (var sr = new StreamReader(fp))
+            var records = new List<CSOpaqueConstruction>();
+
+            if (!File.Exists(fp))
             {
-                var csv = new CsvReader(sr);
+                //Eto.Forms.MessageBox.Show(fp + " is missing!");
+                return records;
+            }
+
+
+            using (var reader = new StreamReader(fp))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                csv.Configuration.HasHeaderRecord = true;
+                csv.Configuration.HeaderValidated = null;
+                csv.Configuration.MissingFieldFound = null;
+                csv.Configuration.IgnoreBlankLines = true;
+
                 while (csv.Read())
                 {
                     try
                     {
                         bool foundAllMaterials = true;
-                        OpaqueConstruction record = csv.GetRecord<OpaqueConstruction>();
+                        CSOpaqueConstruction record = csv.GetRecord<CSOpaqueConstruction>();
+                        if (record == null) continue;
+
                         int layerCnt = csv.GetField<int>("LayerCount");
                         int layerStartAt = csv.GetFieldIndex("LayerCount") + 1;
                         for (int i = layerStartAt; i < layerStartAt + layerCnt; i++)
@@ -362,7 +595,7 @@ namespace ArchsimLib.CSV
                             if (mat.Any(x => x.Name == name))
                             {
                                 var m = mat.First(x => x.Name == name);
-                                record.Layers.Add(new Layer<OpaqueMaterial>(thick, m));
+                                record.Layers.Add(new Layer<CSOpaqueMaterial>(thick, m));
                             }
                             else { foundAllMaterials = false; }
 
@@ -374,15 +607,18 @@ namespace ArchsimLib.CSV
                 }
             }
             return records;
+
         }
-        private static void writeGlazingConstructionsCSV(string fp, List<GlazingConstruction> records)
+        [Obsolete]
+        private static void writeGlazingConstructionsCSV(string fp, List<CSGlazingConstruction> records)
         {
-            using (var sw = new StreamWriter(fp))
+            if (records.Count == 0) return;
+
+            using (var writer = new StreamWriter(fp))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                // var records = lib.OpaqueMaterials;
-                var csv = new CsvWriter(sw);
-                //csv.WriteRecords(records);
-                csv.WriteHeader(typeof(GlazingConstruction));
+             
+                csv.WriteHeader(typeof(CSGlazingConstruction));
                 csv.WriteField("LayerCount");
                 csv.WriteField("Layers");
 
@@ -393,16 +629,14 @@ namespace ArchsimLib.CSV
                     //Write entire current record
                     csv.WriteRecord(record);
                     csv.WriteField(record.Layers.Count);
+                    //foreach (var l in record.Layers)
+                    //{
+                    //    csv.WriteField(l.Thickness);
+                    //}
                     foreach (var l in record.Layers)
                     {
 
-                        csv.WriteField(l.Thickness);
-
-                    }
-                    foreach (var l in record.Layers)
-                    {
-
-                        csv.WriteField(l.Material.Name);
+                        csv.WriteField(l.Name);
 
                     }
 
@@ -410,33 +644,50 @@ namespace ArchsimLib.CSV
                 }
             }
         }
-        private static List<GlazingConstruction> readGlazingConstructionsCSV(string fp, List<GlazingMaterial> mat, List<GasMaterial> gas)
+        [Obsolete]
+        private static List<CSGlazingConstruction> readGlazingConstructionsCSV(string fp, List<CSGlazingMaterial> mat, List<CSGasMaterial> gas)
         {
-            var records = new List<GlazingConstruction>();
-            using (var sr = new StreamReader(fp))
+            var records = new List<CSGlazingConstruction>();
+
+            if (!File.Exists(fp))
             {
-                var csv = new CsvReader(sr);
+                //Eto.Forms.MessageBox.Show(fp + " is missing!");
+                return records;
+            }
+
+
+            using (var reader = new StreamReader(fp))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                csv.Configuration.HasHeaderRecord = true;
+                csv.Configuration.HeaderValidated = null;
+                csv.Configuration.MissingFieldFound = null;
+                csv.Configuration.IgnoreBlankLines = true;
+
                 while (csv.Read())
                 {
                     try
                     {
                         bool foundAllMaterials = true;
-                        GlazingConstruction record = csv.GetRecord<GlazingConstruction>();
+                        CSGlazingConstruction record = csv.GetRecord<CSGlazingConstruction>();
+
+                        if (record == null) continue;
+
                         int layerCnt = csv.GetField<int>("LayerCount");
                         int layerStartAt = csv.GetFieldIndex("LayerCount") + 1;
                         for (int i = layerStartAt; i < layerStartAt + layerCnt; i++)
                         {
-                            var thick = csv.GetField<double>(i);
-                            var name = csv.GetField<string>(i + layerCnt);
+                            //var thick = csv.GetField<double>(i);
+                            var name = csv.GetField<string>(i);
                             if (mat.Any(x => x.Name == name))
                             {
                                 var m = mat.First(x => x.Name == name);
-                                record.Layers.Add(new Layer<WindowMaterialBase>(thick, m));
+                                record.Layers.Add(m);
                             }
                             else if (gas.Any(x => x.Name == name))
                             {
                                 var thegas = gas.First(x => x.Name == name);
-                                record.Layers.Add(new Layer<WindowMaterialBase>(thick, thegas));
+                                record.Layers.Add(thegas);
                             }
                             else { foundAllMaterials = false; }
 
@@ -448,21 +699,40 @@ namespace ArchsimLib.CSV
                 }
             }
             return records;
+
         }
 
 
-        private static void writeZoneDefCSV(string fp, List<ZoneDefinition> records)
+
+
+
+        private static void writeZoneDefCSV(string fp, List<CSZoneDefinition> records)
         {
-            using (var sw = new StreamWriter(fp))
+            if (records.Count == 0) return;
+
+
+            using (var writer = new StreamWriter(fp))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                var csv = new CsvWriter(sw);
-              
+  
+
                 csv.WriteField("Name");
                 csv.WriteField("Loads");
                 csv.WriteField("Conditioning");
                 csv.WriteField("Ventilation");
                 csv.WriteField("HotWater");
                 csv.WriteField("Constructions");
+
+                csv.WriteField("HeatingCO2 [Kg/kWh]");
+                csv.WriteField("HeatingCost [$/kWh]");
+                csv.WriteField("CoolingCO2 [Kg/kWh]");
+                csv.WriteField("CoolingCost [$/kWh]");
+                csv.WriteField("HowWaterCO2 [Kg/kWh]");
+                csv.WriteField("HotWaterCost [$/kWh]");
+                csv.WriteField("ElectricityCO2 [Kg/kWh]");
+                csv.WriteField("ElectricityCost [$/kWh]");
+
+                csv.WriteField("Data Source");
 
                 csv.NextRecord();
 
@@ -474,19 +744,45 @@ namespace ArchsimLib.CSV
                     csv.WriteField(record.Ventilation.Name);
                     csv.WriteField(record.DomHotWater.Name);
                     csv.WriteField(record.Materials.Name);
-               
+
+                    csv.WriteField(record.HeatingCO2);
+                    csv.WriteField(record.HeatingCost);
+                    csv.WriteField(record.CoolingCO2);
+                    csv.WriteField(record.CoolingCost);
+                    csv.WriteField(record.HotWaterCO2);
+                    csv.WriteField(record.HotWaterCost);
+                    csv.WriteField(record.ElectricityCO2);
+                    csv.WriteField(record.ElectricityCost);
+
+                    csv.WriteField(record.DataSource);
+
                     csv.NextRecord();
 
                 }
 
             }
         }
-        private static List<ZoneDefinition> readZoneDefCSV(string fp, Library Lib)
+          
+        private static List<CSZoneDefinition> readZoneDefCSV(string fp, CSLibrary Lib)
         {
-            var records = new List<ZoneDefinition>();
-            using (var sr = new StreamReader(fp))
+            var records = new List<CSZoneDefinition>();
+
+            if (!File.Exists(fp))
             {
-                var csv = new CsvReader(sr);
+                //Eto.Forms.MessageBox.Show(fp + " is missing!");
+                return records;
+            }
+
+
+            using (var reader = new StreamReader(fp))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                csv.Configuration.HasHeaderRecord = true;
+                csv.Configuration.HeaderValidated = null;
+                csv.Configuration.MissingFieldFound = null;
+                csv.Configuration.IgnoreBlankLines = true;
+
+
                 csv.Read();
                 csv.ReadHeader();
 
@@ -494,7 +790,7 @@ namespace ArchsimLib.CSV
                 {
                     try
                     {
-                        ZoneDefinition record = new ZoneDefinition();
+                        CSZoneDefinition record = new CSZoneDefinition();
                         record.Name = csv.GetField<string>("Name");
 
                         string loads = csv.GetField<string>("Loads");
@@ -509,6 +805,18 @@ namespace ArchsimLib.CSV
                         record.DomHotWater = Lib.DomHotWaters.First(x => x.Name == hotwater);
                         record.Materials = Lib.ZoneConstructions.First(x => x.Name == constructions);
 
+                        record.HeatingCO2 = csv.GetField<double>("HeatingCO2 [Kg/kWh]");
+                        record.HeatingCost = csv.GetField<double>("HeatingCost [$/kWh]");
+                        record.CoolingCO2 = csv.GetField<double>("CoolingCO2 [Kg/kWh]");
+                        record.CoolingCost = csv.GetField<double>("CoolingCost [$/kWh]");
+                        record.HotWaterCO2 = csv.GetField<double>("HowWaterCO2 [Kg/kWh]");
+                        record.HotWaterCost = csv.GetField<double>("HotWaterCost [$/kWh]");
+                        record.ElectricityCO2 = csv.GetField<double>("ElectricityCO2 [Kg/kWh]");
+                        record.ElectricityCost = csv.GetField<double>("ElectricityCost [$/kWh]");
+
+                        string datasource = csv.GetField<string>("Data Source");
+                        record.DataSource = datasource;
+
                         records.Add(record);
                     }
                     catch (Exception ex) { Debug.WriteLine(ex.Message); }
@@ -518,121 +826,262 @@ namespace ArchsimLib.CSV
         }
 
 
-        public static void ExportLibrary(Library lib, string folderPath)
+
+
+
+
+
+        public static void ExportLibrary(CSLibrary lib, string folderPath)
         {
-            folderPath += @"\ArchsimLibrary-" + lib.TimeStamp.Year + "-" + lib.TimeStamp.Month + "-" + lib.TimeStamp.Day + "-" + lib.TimeStamp.Hour + "-" + lib.TimeStamp.Minute;
+            //folderPath += @"\ClimateStudioLibrary-" + lib.TimeStamp.Year + "-" + lib.TimeStamp.Month + "-" + lib.TimeStamp.Day + "-" + lib.TimeStamp.Hour + "-" + lib.TimeStamp.Minute;
 
             if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
 
 
             //Schedules
-            writeDayCSV(folderPath + @"\DaySchedules.csv", lib.DaySchedules.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\DaySchedules_Old.csv"))){
+                writeDayCSV(folderPath + @"\DaySchedules_Old.csv", lib.DaySchedules.ToList());
+            }
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\DaySchedules.csv")))
+            {
+                writeLibCSV<CSDaySchedule>(folderPath + @"\DaySchedules.csv", lib.DaySchedules.ToList());
+            }
 
-            writeYearCSV(folderPath + @"\YearSchedules.csv", lib.YearSchedules.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\YearSchedules.csv")))
+            {
+                writeYearCSV(folderPath + @"\YearSchedules.csv", lib.YearSchedules.ToList());
+            }
 
-            writeArrayScheduleCSV(folderPath + @"\ArraySchedules.csv", lib.ArraySchedules.ToList());
-
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\ArraySchedules.csv")))
+            {
+                writeArrayScheduleCSV(folderPath + @"\ArraySchedules.csv", lib.ArraySchedules.ToList());
+            }
 
             //Material Construction
-            writeLibCSV<OpaqueMaterial>(folderPath + @"\OpaqueMaterials.csv", lib.OpaqueMaterials.ToList());
 
-            writeOpaqueConstructionsCSV(folderPath + @"\OpaqueConstructions.csv", lib.OpaqueConstructions.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\OpaqueMaterials.csv")))
+            {
+                writeLibCSV<CSOpaqueMaterial>(folderPath + @"\OpaqueMaterials.csv", lib.OpaqueMaterials.ToList());
+            }
+
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\OpaqueConstructions_Old.csv")))
+            {
+                writeOpaqueConstructionsCSV(folderPath + @"\OpaqueConstructions_Old.csv", lib.OpaqueConstructions.ToList());
+            }
+
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\OpaqueConstructions.csv")))
+            {
+                writeLibCSV<CSOpaqueConstruction>(folderPath + @"\OpaqueConstructions.csv", lib.OpaqueConstructions.ToList());
+            }
+
 
             //Glazing
-            writeLibCSV<GlazingMaterial>(folderPath + @"\GlazingMaterials.csv", lib.GlazingMaterials.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\GlazingMaterials.csv")))
+            {
+                writeLibCSV<CSGlazingMaterial>(folderPath + @"\GlazingMaterials.csv", lib.GlazingMaterials.ToList());
+            }
+
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\GasMaterials.csv")))
+            {
+                writeLibCSV<CSGasMaterial>(folderPath + @"\GasMaterials.csv", lib.GasMaterials.ToList());
+            }
 
 
-            writeGlazingConstructionsCSV(folderPath + @"\GlazingConstructions.csv", lib.GlazingConstructions.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\GlazingConstructions_Old.csv")))
+            {
+                writeGlazingConstructionsCSV(folderPath + @"\GlazingConstructions_Old.csv", lib.GlazingConstructions.ToList());
+            }
 
 
-            writeLibCSV<GlazingConstructionSimple>(folderPath + @"\GlazingConstructionSimple.csv", lib.GlazingConstructionsSimple.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\GlazingConstructions.csv")))
+            {
+                writeLibCSV<CSGlazingConstruction>(folderPath + @"\GlazingConstructions.csv", lib.GlazingConstructions.ToList());
+            }
 
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\GlazingConstructionSimple.csv")))
+            {
+                writeLibCSV<CSGlazingConstructionSimple>(folderPath + @"\GlazingConstructionSimple.csv", lib.GlazingConstructionsSimple.ToList());
+            }
 
             //Settings
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\WindowSettings.csv")))
+            {
+                writeLibCSV<CSWindowDefinition>(folderPath + @"\WindowSettings.csv", lib.WindowSettings.ToList());
+            }
 
-            writeLibCSV<WindowSettings>(folderPath + @"\WindowSettings.csv", lib.WindowSettings.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\ZoneVentilations.csv")))
+            {
+                writeLibCSV<CSZoneVentilation>(folderPath + @"\ZoneVentilations.csv", lib.ZoneVentilations.ToList());
+            }
 
-            writeLibCSV<ZoneVentilation>(folderPath + @"\ZoneVentilations.csv", lib.ZoneVentilations.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\ZoneConditioning.csv")))
+            {
+                writeLibCSV<CSZoneConditioning>(folderPath + @"\ZoneConditioning.csv", lib.ZoneConditionings.ToList());
+            }
 
-            writeLibCSV<ZoneConditioning>(folderPath + @"\ZoneConditioning.csv", lib.ZoneConditionings.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\ZoneConstruction.csv")))
+            {
+                writeLibCSV<CSZoneConstruction>(folderPath + @"\ZoneConstruction.csv", lib.ZoneConstructions.ToList());
+            }
 
-            writeLibCSV<ZoneConstruction>(folderPath + @"\ZoneConstruction.csv", lib.ZoneConstructions.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\ZoneLoad.csv")))
+            {
+                writeLibCSV<CSZoneLoad>(folderPath + @"\ZoneLoad.csv", lib.ZoneLoads.ToList());
+            }
 
-            writeLibCSV<ZoneLoad>(folderPath + @"\ZoneLoad.csv", lib.ZoneLoads.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\DomHotWater.csv")))
+            {
+                writeLibCSV<CSZoneHotWater>(folderPath + @"\DomHotWater.csv", lib.DomHotWaters.ToList());
+            }
 
-            writeLibCSV<DomHotWater>(folderPath + @"\DomHotWater.csv", lib.DomHotWaters.ToList());
+            if (!FilesAndFolders.IsFileLocked(new FileInfo(folderPath + @"\ZoneDefinition.csv")))
+            {
+                // writeLibCSV<ZoneDefinition>(folderPath + @"\ZoneDefinition.csv", lib.ZoneDefinitions.ToList());
+                writeZoneDefCSV(folderPath + @"\ZoneDefinition.csv", lib.ZoneDefinitions.ToList());
+            }
 
-            // writeLibCSV<ZoneDefinition>(folderPath + @"\ZoneDefinition.csv", lib.ZoneDefinitions.ToList());
-            writeZoneDefCSV(folderPath + @"\ZoneDefinition.csv", lib.ZoneDefinitions.ToList());
+            
         }
 
-        public static Library ImportLibrary(string folderPath)
-        {
 
-            Library lib = LibraryDefaults.getHardCodedDefaultLib();
+       public static CSLibrary newLib = new CSLibrary();
+        public static CSLibrary ImportLibrary(string folderPath)
+        {
+            Stopwatch sp = new Stopwatch();
+            sp.Start();
+
+            newLib.Clear();
+            //newLib = LibraryDefaults.GetMinimumRequiredBaseLibrary();
 
             //Schedules
-            List<DaySchedule> inDaySchedules = readDayCSV(folderPath + @"\DaySchedules.csv");
-            lib.DaySchedules = inDaySchedules;
+            //if (File.Exists(folderPath + @"\DaySchedules.csv"))
+            //{
+            //    List<CSDaySchedule> inDaySchedules = readDayCSV(folderPath + @"\DaySchedules.csv");
+            //    newLib.AddRange(inDaySchedules);
+            //}
+            if (File.Exists(folderPath + @"\DaySchedules.csv"))
+            {
+                List<CSDaySchedule> inDaySchedules = readLibCSV<CSDaySchedule>(folderPath + @"\DaySchedules.csv");
+                newLib.AddRange(inDaySchedules);
+            }
+            if (File.Exists(folderPath + @"\YearSchedules.csv"))
+            {
+                List<CSYearSchedule> inYearSchedules = readYearCSV(folderPath + @"\YearSchedules.csv", newLib.DaySchedules);
+                newLib.AddRange(inYearSchedules);
+            }
 
-            List<YearSchedule> inYearSchedules = readYearCSV(folderPath + @"\YearSchedules.csv", inDaySchedules);
-            lib.YearSchedules = inYearSchedules;
+            if (File.Exists(folderPath + @"\ArraySchedules.csv"))
+            {
+                List<CSArraySchedule> inArraySchedules = readArrayScheduleCSV(folderPath + @"\ArraySchedules.csv");
+                newLib.AddRange(inArraySchedules);
+            }
 
-            List<ScheduleArray> inArraySchedules = readArrayScheduleCSV(folderPath + @"\ArraySchedules.csv");
-            lib.ArraySchedules = inArraySchedules;
+            //Opaque
+            if (File.Exists(folderPath + @"\OpaqueMaterials.csv"))
+            {
+                List<CSOpaqueMaterial> inOMat = readLibCSV<CSOpaqueMaterial>(folderPath + @"\OpaqueMaterials.csv");
+                newLib.AddRange(inOMat);
+            }
+            
+            if (File.Exists(folderPath + @"\OpaqueConstructions_Old.csv"))
+            {
+                List<CSOpaqueConstruction> inOpaqueConstructions_Old = readOpaqueConstructionsCSV(folderPath + @"\OpaqueConstructions_Old.csv", newLib.OpaqueMaterials);
+                newLib.AddRange(inOpaqueConstructions_Old);
+            }
 
-            //Material Construction
-            List<OpaqueMaterial> inOMat = readLibCSV<OpaqueMaterial>(folderPath + @"\OpaqueMaterials.csv");
-            lib.OpaqueMaterials = inOMat;
-
-            List<OpaqueConstruction> inOpaqueConstructions = readOpaqueConstructionsCSV(folderPath + @"\OpaqueConstructions.csv", inOMat);
-            lib.OpaqueConstructions = inOpaqueConstructions;
+            if (File.Exists(folderPath + @"\OpaqueConstructions.csv"))
+            {
+                List<CSOpaqueConstruction> inOpaqueConstructions = readLibCSV<CSOpaqueConstruction>(folderPath + @"\OpaqueConstructions.csv");
+                newLib.AddRange(inOpaqueConstructions);
+            }
 
             //Glazing
-            List<GlazingMaterial> inGMat = readLibCSV<GlazingMaterial>(folderPath + @"\GlazingMaterials.csv");
-            lib.GlazingMaterials = inGMat;
+            if (File.Exists(folderPath + @"\GlazingMaterials.csv"))
+            {
+                List<CSGlazingMaterial> inGMat = readLibCSV<CSGlazingMaterial>(folderPath + @"\GlazingMaterials.csv");
+                newLib.AddRange(inGMat);
+             }
 
-            List<GlazingConstruction> inGlazingConstructions = readGlazingConstructionsCSV(folderPath + @"\GlazingConstructions.csv", lib.GlazingMaterials.ToList(), lib.GasMaterials.ToList());
-            lib.GlazingConstructions = inGlazingConstructions;
+            if (File.Exists(folderPath + @"\GasMaterials.csv"))
+            {
+                List<CSGasMaterial> inGasMat = readLibCSV<CSGasMaterial>(folderPath + @"\GasMaterials.csv");
+                newLib.AddRange(inGasMat);
+             }
 
-            List<GlazingConstructionSimple> inGlazingConstructionSimple = readLibCSV<GlazingConstructionSimple>(folderPath + @"\GlazingConstructionSimple.csv");
-            lib.GlazingConstructionsSimple = inGlazingConstructionSimple;
+            if (File.Exists(folderPath + @"\GlazingConstructions_Old.csv"))
+            {
+                List<CSGlazingConstruction> inGlazingConstructions_OLD = readGlazingConstructionsCSV(folderPath + @"\OpaqueConstructions_Old.csv", newLib.GlazingMaterials.ToList(), newLib.GasMaterials.ToList());
+                newLib.AddRange( inGlazingConstructions_OLD);
+            }
+
+            if (File.Exists(folderPath + @"\GlazingConstructions.csv"))
+            {
+                List<CSGlazingConstruction> inGlazingConstructions = readLibCSV<CSGlazingConstruction>(folderPath + @"\GlazingConstructions.csv");
+                newLib.AddRange(inGlazingConstructions);
+            }
+
+            if (File.Exists(folderPath + @"\GlazingConstructionSimple.csv"))
+            {
+                List<CSGlazingConstructionSimple> inGlazingConstructionSimple = readLibCSV<CSGlazingConstructionSimple>(folderPath + @"\GlazingConstructionSimple.csv");
+                newLib.AddRange(inGlazingConstructionSimple);
+            }
+
+
+
 
             //Settings
+            if (File.Exists(folderPath + @"\WindowSettings.csv"))
+            {
+                List<CSWindowDefinition> inWindowSettings = readLibCSV<CSWindowDefinition>(folderPath + @"\WindowSettings.csv");
+                newLib.AddRange(inWindowSettings);
+            }
+            if (File.Exists(folderPath + @"\ZoneVentilations.csv"))
+            {
+                List<CSZoneVentilation> inZoneVentilation = readLibCSV<CSZoneVentilation>(folderPath + @"\ZoneVentilations.csv");
+                newLib.AddRange(inZoneVentilation);
+            }
+            if (File.Exists(folderPath + @"\ZoneConditioning.csv"))
+            {
+                List<CSZoneConditioning> inZoneConditioning = readLibCSV<CSZoneConditioning>(folderPath + @"\ZoneConditioning.csv");
+                newLib.AddRange(inZoneConditioning);
+            }
+            if (File.Exists(folderPath + @"\ZoneConstruction.csv"))
+            {
+                List<CSZoneConstruction> inZoneConstruction = readLibCSV<CSZoneConstruction>(folderPath + @"\ZoneConstruction.csv");
+                newLib.AddRange(inZoneConstruction);
+            }
+            if (File.Exists(folderPath + @"\ZoneLoad.csv"))
+            {
+                List<CSZoneLoad> inZoneLoad = readLibCSV<CSZoneLoad>(folderPath + @"\ZoneLoad.csv");
+                newLib.AddRange(inZoneLoad);
+            }
+            if (File.Exists(folderPath + @"\DomHotWater.csv"))
+            {
+                List<CSZoneHotWater> inDomHotWater = readLibCSV<CSZoneHotWater>(folderPath + @"\DomHotWater.csv");
+                newLib.AddRange(inDomHotWater);
+            }
 
-            List<WindowSettings> inWindowSettings = readLibCSV<WindowSettings>(folderPath + @"\WindowSettings.csv");
-            lib.WindowSettings = inWindowSettings;
+            if (File.Exists(folderPath + @"\ZoneDefinition.csv"))
+            {
+                List<CSZoneDefinition> inZoneDefinition = readZoneDefCSV(folderPath + @"\ZoneDefinition.csv", newLib);
+                newLib.AddRange(inZoneDefinition);
+            }
+            if (File.Exists(folderPath + @"\WindowSettings.csv"))
+            {
+                List<CSWindowDefinition> inWinSet = readLibCSV<CSWindowDefinition>(folderPath + @"\WindowSettings.csv");
+                newLib.AddRange(inWinSet);
+            }
 
-            List<ZoneVentilation> inZoneVentilation = readLibCSV<ZoneVentilation>(folderPath + @"\ZoneVentilations.csv");
-            lib.ZoneVentilations = inZoneVentilation;
+            //var defaultLib = LibraryDefaults.GetDefaultLibrary();
+            //defaultLib.Merge(lib);
 
-            List<ZoneConditioning> inZoneConditioning = readLibCSV<ZoneConditioning>(folderPath + @"\ZoneConditioning.csv");
-            lib.ZoneConditionings = inZoneConditioning;
-
-            List<ZoneConstruction> inZoneConstruction = readLibCSV<ZoneConstruction>(folderPath + @"\ZoneConstruction.csv");
-            lib.ZoneConstructions = inZoneConstruction;
-
-            List<ZoneLoad> inZoneLoad = readLibCSV<ZoneLoad>(folderPath + @"\ZoneLoad.csv");
-            lib.ZoneLoads = inZoneLoad;
-
-            List<DomHotWater> inDomHotWater = readLibCSV<DomHotWater>(folderPath + @"\DomHotWater.csv");
-            lib.DomHotWaters = inDomHotWater;
-
-            //List<ZoneDefinition> inZoneDefinition = readLibCSV<ZoneDefinition>(folderPath + @"\ZoneDefinition.csv");
-            //lib.ZoneDefinitions = inZoneDefinition;
-
-            List<ZoneDefinition> inZoneDefinition = readZoneDefCSV(folderPath + @"\ZoneDefinition.csv", lib);
-            lib.ZoneDefinitions = inZoneDefinition;
+            sp.Stop();
+            Debug.WriteLine("Reading CSV Library: " +sp.ElapsedMilliseconds);
 
 
-
-            var defaultLib = LibraryDefaults.getHardCodedDefaultLib();
-            defaultLib.Merge(lib);
-
-
-
-            return lib;
+            return newLib;
         }
+
 
 
 

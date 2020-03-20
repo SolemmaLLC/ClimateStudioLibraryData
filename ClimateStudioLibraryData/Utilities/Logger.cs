@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace ArchsimLib.Utilities
+namespace CSEnergyLib.Utilities
 {
     public static class Logger
     {

@@ -1,36 +1,47 @@
-﻿using ArchsimLib.LibraryObjects;
-using ArchsimLib.Utilities;
+﻿using CSEnergyLib.LibraryObjects;
+using CSEnergyLib.Utilities;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace ArchsimLib.LibraryObjects
+namespace CSEnergyLib.LibraryObjects
 {
 
     #region OpaqueConstruction
 
     [DataContract]
-    public class OpaqueConstruction : BaseConstruction
+    [ProtoContract]
+
+    public class CSOpaqueConstruction : CSBaseConstruction
     {
         [DataMember]
-        public List<Layer<OpaqueMaterial>> Layers = new List<Layer<OpaqueMaterial>>();
+        [ProtoMember(1, AsReference = true)]
+        public List<Layer<CSOpaqueMaterial>> Layers { get; set; } = new List<Layer<CSOpaqueMaterial>>();
 
-        [DataMember]
+
+
+        [DataMember, DefaultValue(ConstructionCategory.Facade)]
+        [ProtoMember(2)]
         public ConstructionCategory Type { get; set; } = ConstructionCategory.Facade;
 
-        public OpaqueConstruction() { }
+
+
+
+        public CSOpaqueConstruction() { }
 
         public bool Correct()
         {
             bool changed = false;
 
-            string cleanName = Formating.RemoveSpecialCharactersNotStrict(this.Name);
+            string cleanName = CSFormatting.RemoveSpecialCharactersNotStrict(this.Name);
             if (this.Name != cleanName) { this.Name = cleanName; changed = true; }
 
-            foreach (Layer<OpaqueMaterial> l in Layers) { if (l.Correct()) { changed = true; } }
+            foreach (Layer<CSOpaqueMaterial> l in Layers) { if (l.Correct()) { changed = true; } }
 
             return changed;
         }
@@ -38,17 +49,49 @@ namespace ArchsimLib.LibraryObjects
         public string GetInfo() {
 
             StringBuilder s = new StringBuilder();
-            s.AppendLine("UValue[W/m2K] = " + Math.Round(this.GetUval(), 3));
-            s.AppendLine("HeatCapacity[kJ/m2K] = " + Math.Round(this.GetHeatCapacity() , 3));
+            s.AppendLine(GetIndicators());          
+            s.AppendLine("Layers: [Outside - Inside]");
+            s.AppendLine(GetLayers());
+             
 
-            foreach (var l in this.Layers)
-            {
-                s.AppendLine(l.Material + " " + l.Thickness + " [m]");
-            }
+            return s.ToString();
+        }
+
+        public string GetIndicators()
+        {
+
+            StringBuilder s = new StringBuilder();
+            s.AppendLine("U-Value[W/m2K] = " + Math.Round(this.GetUval(), 3));
+            s.AppendLine("Heat Capacity[kJ/m2K] = " + Math.Round(this.GetHeatCapacity(), 3));
             s.AppendLine("Embodied Energy[MJ/m2] = " + this.GetEE());
             s.AppendLine("Embodied Carbon[kgCO2/m2] = " + this.GetEC());
-            // s.AppendLine("Cost[$/m2] = " + this.GetDollar());
+            return s.ToString();
+        }
 
+        public string GetLayers() {
+            StringBuilder s = new StringBuilder();
+
+            int cnt = 1;
+            foreach (var l in this.Layers)
+            {
+                string prefix = " " + cnt + " - ";
+                //if(cnt ==1 ) prefix = " O - ";
+                //else if (cnt == this.Layers.Count) prefix = " I - ";
+                s.AppendLine(prefix + l.Material + " " + l.Thickness + " [m]");
+                cnt++;
+            }
+
+
+            return s.ToString();
+        }
+
+        public string GetInfoSingleLine()
+        {
+
+            StringBuilder s = new StringBuilder();
+            s.Append(this.Name+", ");
+            s.Append("UVal: " + Math.Round(this.GetUval(), 3) + " [W/m2K], ");
+            s.Append("HC: " + Math.Round(this.GetHeatCapacity(),0) + " [kJ/m2K]");
             return s.ToString();
         }
 
@@ -89,10 +132,7 @@ namespace ArchsimLib.LibraryObjects
         {
             return 1.0 / this.GetRvalue();
         }
-        /// <summary>
-        /// Units [kJ/m2K]
-        /// </summary>
-        /// <returns></returns>
+ 
         public double GetHeatCapacity()
         {
             double hc = 0.0;
@@ -161,7 +201,7 @@ namespace ArchsimLib.LibraryObjects
             foreach (var lay in this.Layers)
             {
                 // if (lay.GasType == "GasMaterial") continue;
-                OpaqueMaterial glmat = lay.Material;
+                CSOpaqueMaterial glmat = lay.Material;
                 var dd = lay.Thickness * glmat.Cost;
 
                 //dd += c.Cost;
@@ -183,7 +223,7 @@ namespace ArchsimLib.LibraryObjects
             foreach (var lay in this.Layers)
             {
                 //if (lay.GasType == "GasMaterial") continue;
-                OpaqueMaterial glmat = lay.Material;
+                CSOpaqueMaterial glmat = lay.Material;
                 var dd = lay.Thickness * glmat.Density * glmat.EmbodiedEnergy;
 
                 //dd += c.EmbodiedEnergy;
@@ -205,7 +245,7 @@ namespace ArchsimLib.LibraryObjects
             foreach (var lay in this.Layers)
             {
                 //  if (lay.GasType == "GasMaterial") continue;
-                OpaqueMaterial glmat = lay.Material;
+                CSOpaqueMaterial glmat = lay.Material;
                 var dd = lay.Thickness * glmat.Density * glmat.EmbodiedCarbon;
 
                 // dd += c.EmbodiedCarbon;
@@ -222,10 +262,20 @@ namespace ArchsimLib.LibraryObjects
             return ec;
         }
 
-        public static OpaqueConstruction QuickConstruction(string name, ConstructionCategory type, string[] layers, double[] thickness, string category, string source, ref Library Library)
+        public double GetThickness()
+        {
+            double thick = 0.0;
+            foreach (var lay in this.Layers)
+            {
+                thick += lay.Thickness ;
+            }
+             return thick  ;
+        }
+
+        public static CSOpaqueConstruction QuickConstruction(string name, ConstructionCategory type, string[] layers, double[] thickness, string category, string source, ref CSLibrary Library)
         {
 
-            OpaqueConstruction oc = new OpaqueConstruction();
+            CSOpaqueConstruction oc = new CSOpaqueConstruction();
             for (int i = 0; i < layers.Length; i++)
             {
                 try
@@ -237,7 +287,7 @@ namespace ArchsimLib.LibraryObjects
                     {
 
                         var mat = Library.OpaqueMaterials.First(o => o.Name == layers[i]);
-                        Layer<OpaqueMaterial> layer = new Layer<OpaqueMaterial>(thickness[i], mat);
+                        Layer<CSOpaqueMaterial> layer = new Layer<CSOpaqueMaterial>(thickness[i], mat);
                         oc.Layers.Add(layer);
                     }
                     else
@@ -266,7 +316,7 @@ namespace ArchsimLib.LibraryObjects
             return oc;
 
         }
-        public static OpaqueConstruction MixConstructions(string newName, OpaqueConstruction c1, OpaqueConstruction c2, double areaFractionC2)
+        public static CSOpaqueConstruction MixConstructions(string newName, CSOpaqueConstruction c1, CSOpaqueConstruction c2, double areaFractionC2)
         {
 
             //find layer with lowest conductivity in C1
@@ -297,14 +347,14 @@ namespace ArchsimLib.LibraryObjects
             double newThickness = (rTarget - r1_2) * minLamdaC1;
 
 
-            List<Layer<OpaqueMaterial>> newLayerset = new List<Layer<OpaqueMaterial>>();
+            List<Layer<CSOpaqueMaterial>> newLayerset = new List<Layer<CSOpaqueMaterial>>();
             for (int i = 0; i < c1.Layers.Count; i++)
             {
-                if (i == minLamdaC1Index) newLayerset.Add(new Layer<OpaqueMaterial>(newThickness, c1.Layers[i].Material));
-                else newLayerset.Add(new Layer<OpaqueMaterial>(c1.Layers[i].Thickness, c1.Layers[i].Material));
+                if (i == minLamdaC1Index) newLayerset.Add(new Layer<CSOpaqueMaterial>(newThickness, c1.Layers[i].Material));
+                else newLayerset.Add(new Layer<CSOpaqueMaterial>(c1.Layers[i].Thickness, c1.Layers[i].Material));
             }
 
-            OpaqueConstruction c = new OpaqueConstruction()
+            CSOpaqueConstruction c = new CSOpaqueConstruction()
             {
                 Name = newName,
                 Type = c1.Type,
@@ -320,352 +370,80 @@ namespace ArchsimLib.LibraryObjects
             return c;
         }
 
+
+        public static CSOpaqueConstruction fromJSON(string json)
+        {
+            return Serialization.Deserialize<CSOpaqueConstruction>(json);
+        }
+
+        public string toJSON()
+        {
+            return Serialization.Serialize<CSOpaqueConstruction>(this);
+        }
     }
 
     #endregion
 
 
-    #region GlazingConstruction
-
-
-    [DataContract]
-    public class GlazingConstruction : BaseConstruction
-    {
-        // not used in simulation begin
-        [DataMember]
-        public string SHGF { get; set; } = "?";
-        [DataMember]
-        [Units("W/m2-k")]
-        public string UValue { get; set; } = "?";
-        [DataMember]
-        public string TVis { get; set; } = "?";
-        // not used in simulation end
-
-        [DataMember]
-        public List<Layer<WindowMaterialBase>> Layers = new List<Layer<WindowMaterialBase>>();
-        public GlazingConstruction() { }
-        public bool Correct()
-        {
-            bool changed = false;
-
-            string cleanName = Formating.RemoveSpecialCharactersNotStrict(this.Name);
-            if (this.Name != cleanName) { this.Name = cleanName; changed = true; }
-
-            foreach (var l in Layers) { if (l.Correct()) { changed = true; } }
-
-            return changed;
-        }
-
-        [DataMember]
-        public GlazingConstructionTypes Type = GlazingConstructionTypes.Single;
-
-        public static string GetRadianceMaterial(GlazingConstruction c)
-        {
-            //return "void plastic White_50 0 0 5 0.5 0.5 0.5 0 0";
-            //return "void glass glass_70 0 0 3 0.77 0.77 0.77";
-
-            double trans = 1.0;
-
-            foreach (var l in c.Layers)
-            {
-                GlazingMaterial gl = l.Material as GlazingMaterial;
-                if (gl != null) trans *= gl.VisibleTransmittance;
-            }
-
-            double refractiveIndex = 1.52;
-            double rad = (Math.Sqrt(0.8402528435 + 0.0072522239 * trans * trans) - 0.9166530661) / 0.0036261119 / trans;
-            return String.Format("void glass {2}_glazing 0 0 4 {0} {0} {0} {1}\n", rad, refractiveIndex, c.Name);
-        }
-
-        public string GetInfo()
-        {
-
-            StringBuilder s = new StringBuilder();
-            s.AppendLine("UValue[W/m2K] = unknown");// + Math.Round(this.UValue, 3));
-            s.AppendLine("SHGC = unknown");// + Math.Round(this.SHGF, 3));
-            s.AppendLine("Tvis = unknown");// + Math.Round(this.VisibleTransmittance, 3));
-
-            foreach (var l in this.Layers)
-            {
-                s.AppendLine(l.Material + " " + l.Thickness + " [m]");
-            }
-            s.AppendLine("Embodied Energy[MJ/m2] = " + this.GetEE());
-            s.AppendLine("Embodied Carbon[kgCO2/m2] = " + this.GetEC());
-            // s.AppendLine("Cost[$/m2] = " + this.GetDollar());
-
-            return s.ToString();
-        }
-
-
-        public double GetDollar()
-        {
-            double dollar = 0.0;
-            foreach (var lay in this.Layers)
-            {
-                var mat = lay.Material as GlazingMaterial;
-                if (mat != null)
-                {
-                    dollar += lay.Thickness * mat.Cost;
-                }
-            }
-            return dollar + this.Cost;
-        }
-        public  double GetEE()
-        {
-            double ee = 0.0;
-            foreach (var lay in this.Layers)
-            {
-                var mat = lay.Material as GlazingMaterial;
-                if (mat != null)
-                {
-                    ee += lay.Thickness * mat.Density *
-                          mat.EmbodiedEnergy;
-                }
-            }
-            return ee + this.EmbodiedEnergy;
-        }
-        public  double GetEC()
-        {
-            double ec = 0.0;
-            foreach (var lay in this.Layers)
-            {
-                var mat = lay.Material as GlazingMaterial;
-                if (mat != null)
-                {
-                    ec += lay.Thickness * mat.Density *
-                          mat.EmbodiedCarbon;
-                }
-            }
-            return ec + this.EmbodiedCarbon;
-        }
-        public  double[] GetDollar(int LifeTime, double area)
-        {
-            double[] dollar = new double[LifeTime];
-            foreach (var lay in this.Layers)
-            {
-
-                var mat = lay.Material as GlazingMaterial;
-                if (mat != null)
-                {
-                    var dd = lay.Thickness * mat.Cost;
-
-                    for (int lft = 0; lft < LifeTime; lft += mat.Life)
-                    {
-                        dollar[lft] += dd * area;
-                    }
-                }
-            }
-            for (int lft = 0; lft < LifeTime; lft += this.Life)
-            {
-                dollar[lft] += this.Cost * area;
-            }
-            return dollar;
-        }
-        public  double[] GetEE(int LifeTime, double area)
-        {
-            double[] ee = new double[LifeTime];
-            foreach (var lay in this.Layers)
-            {
-                var mat = lay.Material as GlazingMaterial;
-                if (mat != null)
-                {
-                    var dd = lay.Thickness * mat.Density * mat.EmbodiedEnergy;
-
-                    for (int lft = 0; lft < LifeTime; lft += mat.Life)
-                    {
-                        ee[lft] += dd * area;
-                    }
-                }
-            }
-            for (int lft = 0; lft < LifeTime; lft += this.Life)
-            {
-                ee[lft] += this.EmbodiedEnergy * area;
-            }
-            return ee;
-        }
-        public  double[] GetEC( int LifeTime, double area)
-        {
-            double[] ec = new double[LifeTime];
-            foreach (var lay in this.Layers)
-            {
-                var mat = lay.Material as GlazingMaterial;
-                if (mat != null)
-                {
-                    var dd = lay.Thickness * mat.Density * mat.EmbodiedCarbon;
-
-                    for (int lft = 0; lft < LifeTime; lft += mat.Life)
-                    {
-                        ec[lft] += dd * area;
-                    }
-                }
-            }
-
-            for (int lft = 0; lft < LifeTime; lft += this.Life)
-            {
-                ec[lft] += this.EmbodiedCarbon * area;
-            }
-
-            return ec;
-        }
-    }
-
-
-    #endregion
-
-
-    #region GlazingConstructionSimple
-
+  
 
 
 
     [DataContract]
-    public class GlazingConstructionSimple : BaseConstruction//BaseMaterial
+    [ProtoContract]
+    [ProtoInclude(4100, typeof(CSOpaqueConstruction))]
+    [ProtoInclude(4200, typeof(CSGlazingConstruction))]
+    [ProtoInclude(4300, typeof(CSGlazingConstructionSimple))]
+
+    public class CSBaseConstruction : LibraryComponent
     {
 
-        [DataMember]
-        public double SHGF { get; set; } = 0.837;
-        [DataMember]
-        [Units("W/m2-k")]
-        public double UValue { get; set; } = 0.075;
-        [DataMember]
-        public double VisibleTransmittance { get; set; } = 0.898;
 
-        public GlazingConstructionSimple() { }
-        public GlazingConstructionSimple(string name, string category, string comment, double tvis, double uval, double shgf)
-        {
-
-            this.Name = name.Trim();
-            this.Category = category.Trim();
-            this.Comment = comment.Trim();
-            this.VisibleTransmittance = tvis;
-            this.UValue = uval;
-            this.SHGF = shgf;
-            this.Comment = comment;
-        }
-
-        public bool Correct()
-        {
-            bool changed = false;
-
-            string cleanName = Formating.RemoveSpecialCharactersNotStrict(this.Name);
-            if (this.Name != cleanName) { this.Name = cleanName; changed = true; }
-
-            if (this.SHGF < 0.0) { this.SHGF = 0.0; changed = true; }
-            if (this.SHGF > 1.0) { this.SHGF = 1.0; changed = true; }
-
-            if (this.VisibleTransmittance < 0.0) { this.VisibleTransmittance = 0.0; changed = true; }
-            if (this.VisibleTransmittance > 1.0) { this.VisibleTransmittance = 1.0; changed = true; }
-
-            return changed;
-        }
+        // system info
+        [DataMember, DefaultValue("")]
+        [ProtoMember(1)]
+        public string Manufacturer { get; set; } = "";
 
 
-        //Simple Glazing constructions
-
-        public string GetInfo()
-        {
-
-            StringBuilder s = new StringBuilder();
-            s.AppendLine("UValue[W/m2K] = " + Math.Round(this.UValue, 3));
-            s.AppendLine("SHGC = " + Math.Round(this.SHGF, 3));
-            s.AppendLine("Tvis = " + Math.Round(this.VisibleTransmittance, 3));
-
-            s.AppendLine("Embodied Energy[MJ/m2] = " + this.GetEE());
-            s.AppendLine("Embodied Carbon[kgCO2/m2] = " + this.GetEC());
-            // s.AppendLine("Cost[$/m2] = " + this.GetDollar());
-
-            return s.ToString();
-        }
-
-        public  string GetRadianceMaterial()
-        {
-            double trans = this.VisibleTransmittance;
-
-            double refractiveIndex = 1.52;
-            double rad = (Math.Sqrt(0.8402528435 + 0.0072522239 * trans * trans) - 0.9166530661) / 0.0036261119 / trans;
-            return String.Format("void glass {2}_glazing 0 0 4 {0} {0} {0} {1}\n", rad, refractiveIndex, this.Name);
-        }
-        public  double GetDollar()
-        {
-            return this.Cost;
-        }
-        public  double GetEE()
-        {
-
-            return this.EmbodiedEnergy;
-        }
-        public  double GetEC()
-        {
-
-            return this.EmbodiedCarbon;
-        }
-        public  double[] GetDollar( int LifeTime, double area)
-        {
-            double[] dollar = new double[LifeTime];
-
-            for (int lft = 0; lft < LifeTime; lft += this.Life)
-            {
-                dollar[lft] += this.Cost * area;
-            }
-
-            return dollar;
-        }
-        public  double[] GetEE( int LifeTime, double area)
-        {
-            double[] ee = new double[LifeTime];
-
-            for (int lft = 0; lft < LifeTime; lft += this.Life)
-            {
-                ee[lft] += this.EmbodiedEnergy * area;
-            }
-
-            return ee;
-        }
-        public  double[] GetEC( int LifeTime, double area)
-        {
-            double[] ec = new double[LifeTime];
-
-            for (int lft = 0; lft < LifeTime; lft += this.Life)
-            {
-                ec[lft] += this.EmbodiedCarbon * area;
-            }
-
-            return ec;
-        }
-    }
+        [DataMember, DefaultValue("")]
+        [ProtoMember(2)]
+        public string ProductName { get; set; } = "";
 
 
-#endregion
+        [DataMember, DefaultValue("")]
+        [ProtoMember(3)]
+        public string Appearance { get; set; } = "";
 
 
-
-    [DataContract]
-    public class BaseConstruction : LibraryComponent
-    {
-
-        [DataMember]
-        [Units("MJ/m2")]
+        [DataMember, DefaultValue(0.0), Units("MJ/m2")]
+        [ProtoMember(4)]
         public double EmbodiedEnergy { get; set; } = 0;
 
-        //[DataMember]
-        //public double EmbodiedEnergyStdDev { get; set; }
 
-        [DataMember]
+        //[DataMember, DefaultValue(0.0)]
+        //[ProtoMember(5)]
+        //public double EmbodiedEnergyStdDev { get; set; } = 0;
+
+        [DataMember, DefaultValue(0.0),]
         [Units("kgCO2eq/m2")]
+        [ProtoMember(6)]
         public double EmbodiedCarbon { get; set; } = 0;
 
-        //[DataMember]
-        //public double EmbodiedCarbonStdDev { get; set; }
+        //[DataMember, DefaultValue(0.0)]
+        //[ProtoMember(7)]
+        //public double EmbodiedCarbonStdDev { get; set; } = 0;
 
-        [DataMember]
-        [Units("$/m2")]
+        [DataMember, DefaultValue(0.0), Units("$/m2")]
+        [ProtoMember(8)]
         public double Cost { get; set; } = 0;
 
-        [DataMember]
-        [Units("yr")]
-        public int Life { get; set; } = 1;
+        [DataMember, DefaultValue(10), Units("yr")]
+        [ProtoMember(9)]
+        public int Life { get; set; } = 10;
 
-        public BaseConstruction() { }
+
+
+        public CSBaseConstruction() { }
 
         public override string ToString() { return Name; }
     }

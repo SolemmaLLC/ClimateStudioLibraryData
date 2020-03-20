@@ -12,8 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using ArchsimLib.LibraryObjects;
-using ArchsimLib.CSV;
+using CSEnergyLib.LibraryObjects;
+using CSEnergyLib.CSV;
 using System.IO;
 using System.Windows.Forms;
 
@@ -24,13 +24,13 @@ namespace ClimateStudioLibraryData
     /// </summary>
     public partial class MainWindow : Window
     {
-        Library Library;
+        CSLibrary Library;
         
         public MainWindow()
         {
             InitializeComponent();
 
-            Library = LibraryDefaults.getHardCodedDefaultLib();
+            Library = LibraryDefaults.GetDefaultLibrary();
 
             ErrorTextBox.Text = "Default Library generated" +Library.TimeStamp;
 

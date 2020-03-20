@@ -34,15 +34,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CsvHelper, Version=12.0.0.0, Culture=neutral, PublicKeyToken=8c4959082be5c823, processorArchitecture=MSIL">
-      <HintPath>..\packages\CsvHelper.12.1.2\lib\net45\CsvHelper.dll</HintPath>
+    <Reference Include="CsvHelper, Version=13.0.0.0, Culture=neutral, PublicKeyToken=8c4959082be5c823, processorArchitecture=MSIL">
+      <HintPath>..\packages\CsvHelper.13.0.0\lib\net45\CsvHelper.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net, Version=2.4.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <HintPath>..\packages\protobuf-net.2.4.4\lib\net40\protobuf-net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.4.0\lib\net461\System.ValueTuple.dll</HintPath>
     </Reference>
@@ -65,7 +70,30 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="LibraryObjects\BuildingDefinition.cs" />
+    <Compile Include="LibraryObjects\ConstructionLayers.cs" />
+    <Compile Include="LibraryObjects\Constructions.cs" />
+    <Compile Include="LibraryObjects\CSLibrary.cs" />
+    <Compile Include="LibraryObjects\CSLibraryInMemory.cs" />
+    <Compile Include="LibraryObjects\CSWindowDefinition.cs" />
+    <Compile Include="LibraryObjects\CSZoneConditioning.cs" />
+    <Compile Include="LibraryObjects\CSZoneConstruction.cs" />
+    <Compile Include="LibraryObjects\CSZoneDefinition.cs" />
+    <Compile Include="LibraryObjects\CSZoneHotWater.cs" />
+    <Compile Include="LibraryObjects\CSZoneLoad.cs" />
+    <Compile Include="LibraryObjects\CSZoneVentilation.cs" />
+    <Compile Include="LibraryObjects\GlazingSystemLayers.cs" />
+    <Compile Include="LibraryObjects\GlazingSystems.cs" />
+    <Compile Include="LibraryObjects\HVACTemplate.cs" />
+    <Compile Include="LibraryObjects\LibraryComponent.cs" />
+    <Compile Include="LibraryObjects\LibraryDefaults.cs" />
+    <Compile Include="LibraryObjects\LibraryEnums.cs" />
+    <Compile Include="LibraryObjects\Schedules.cs" />
+    <Compile Include="LibraryObjects\WindowShades.cs" />
     <Compile Include="Utilities\AssembleyInfo.cs" />
+    <Compile Include="Utilities\CSFormatting.cs" />
+    <Compile Include="Utilities\DefaultDirectories.cs" />
+    <Compile Include="Utilities\FilesAndFolders.cs" />
     <Compile Include="Utilities\Formating.cs" />
     <Compile Include="Utilities\Logger.cs" />
     <Compile Include="Utilities\Serialization.cs" />
@@ -79,23 +107,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CSV\CSVImportExport.cs" />
-    <Compile Include="LibraryObjects\BuildingDefinition.cs" />
-    <Compile Include="LibraryObjects\Constructions.cs" />
-    <Compile Include="LibraryObjects\DomHotWater.cs" />
-    <Compile Include="LibraryObjects\HVACTemplate.cs" />
-    <Compile Include="LibraryObjects\Layer.cs" />
-    <Compile Include="LibraryObjects\Library.cs" />
-    <Compile Include="LibraryObjects\LibraryComponent.cs" />
-    <Compile Include="LibraryObjects\LibraryDefaults.cs" />
-    <Compile Include="LibraryObjects\LibraryEnums.cs" />
-    <Compile Include="LibraryObjects\Materials.cs" />
-    <Compile Include="LibraryObjects\Schedules.cs" />
-    <Compile Include="LibraryObjects\WindowSettings.cs" />
-    <Compile Include="LibraryObjects\ZoneConditioning.cs" />
-    <Compile Include="LibraryObjects\ZoneDefinition.cs" />
-    <Compile Include="LibraryObjects\ZoneLoad.cs" />
-    <Compile Include="LibraryObjects\ZoneMaterials.cs" />
-    <Compile Include="LibraryObjects\ZoneVentilation.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

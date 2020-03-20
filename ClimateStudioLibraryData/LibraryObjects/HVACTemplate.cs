@@ -1,7 +1,7 @@
-﻿using ArchsimLib.Utilities;
+﻿using CSEnergyLib.Utilities;
 using System.Runtime.Serialization;
 
-namespace ArchsimLib.LibraryObjects
+namespace CSEnergyLib.LibraryObjects
 {
     [DataContract(IsReference = true)]
     public class HVACZoneVAV : LibraryComponent

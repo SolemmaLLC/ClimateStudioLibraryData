@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
-namespace ArchsimLib.Utilities
+namespace CSEnergyLib.Utilities
 {
 
 
